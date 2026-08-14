@@ -59,7 +59,7 @@ Existing `carelog-be/docs/**` documents remain in place. This repository referen
 | MIGRATE_LATER | Carelog-specific runtime profile portion of `ADR-001`, `runtime-deployment-profiles.md` |
 | DEPRECATE_LATER | `MSA-Carelog.md`, `ADR-002` platform communication document, `finance-frontend-shared-identity-contract.md`, `monorepo-strategy.md` |
 
-These labels describe this architecture bootstrap's reference posture. They do not authorize a migration or deprecation change.
+These labels describe this architecture bootstrap's reference posture. They do not authorize a migration or deprecation change. `MSA-Carelog.md` is `DEPRECATE_LATER` because its legacy Schedule model uses `SCHEDULED`, `OVERDUE`, `COMPLETED`, and `DEFAULTED`, which conflicts with the Accepted CustomerEvent model of `PLANNED`, `OCCURRED`, and `CANCELLED` with overdue derived only. The legacy document remains unmodified and is not a new Product Canonical Source.
 
 ## Deliberate scope boundary
 

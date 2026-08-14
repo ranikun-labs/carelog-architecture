@@ -40,7 +40,8 @@ The Carelog Consumer must:
 3. resolve `identityUserId` to Carelog-local domain linkage without making it a Customer identifier;
 4. evaluate Carelog-local Workspace/Product Membership and product authorization;
 5. enforce Customer ownership and the cross-workspace prohibition;
-6. keep product state and product authorization under Carelog ownership.
+6. keep product state and product authorization under Carelog ownership;
+7. treat `identityUserId`, or an equivalent stable identifier, as a logical/weak reference: do not read or write the Shared Identity database or tables directly, and do not create a physical cross-service foreign key from Carelog storage to Shared Identity storage. Identity-related information is consumed only through an accepted API, event, token, or authenticated-context contract.
 
 The Shared Platform identity is an input to Carelog authorization, not a replacement for Carelog-local authorization.
 
@@ -85,4 +86,5 @@ The exact NATS subjects, Shared AI provider/model, and Shared AI DTO are also ou
 - `carelog-be/src/main/java/carelog/carelog/auth/web/GatewayHeaderAuthFilter.java` and `GatewayUserDetails.java` at `carelog-be/dev@2bae6677498aefe57b583f648519bd9f9c5ebc0a` provide transition evidence only.
 - Independent Gateway and Identity runtime foundation sources are present in `platform-services/main@853adce7515f921931d4731bef5fc43f75e56e3d`.
 - Foundation identity-token documentation is Draft and does not supply an Accepted Carelog wire schema at `harness-foundation-docs/main@69fceb267094756913f400f8b4045590bd0e8ac5`.
+- Foundation repository/service-boundary guidance at `harness-foundation-docs/docs/architecture/repository-service-boundaries.md` assigns each service its own data and prohibits direct service-database access and cross-service foreign keys at `harness-foundation-docs/main@69fceb267094756913f400f8b4045590bd0e8ac5`.
 - [ADR-C03](../adr/ADR-C03-shared-identity-consumer-boundary.md) owns the proposed boundary and its explicit deferrals.

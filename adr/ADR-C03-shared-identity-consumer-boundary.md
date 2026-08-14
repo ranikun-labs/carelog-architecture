@@ -65,7 +65,7 @@ Shared Platform owns:
 - Redis/session semantics;
 - the final trusted-context wire contract.
 
-The product consumer must not turn a current trusted-header implementation into the final platform contract. The accepted boundary is the semantic relationship, not a header name, claim layout, transport, or session schema.
+The product consumer must not turn a current trusted-header implementation into the final platform contract. The proposed semantic boundary candidate is a relationship, not an accepted header name, claim layout, transport, or session schema.
 
 ## Boundaries
 
@@ -83,7 +83,7 @@ The candidate behavior for unavailable or deactivated Shared Identity is intenti
 - Shared Platform can serve multiple product consumers without adopting Carelog-specific domain identifiers or membership rules.
 - The current backend trusted-context path can be preserved as transition evidence while a separately reviewed final wire contract is designed.
 - Identity extraction and product-state cutover remain independently reviewable; a runtime foundation or source extraction does not prove consumer cutover.
-- A semantic contract is available now, but implementation teams cannot infer exact token, session, header, or deployment values from this ADR.
+- A proposed semantic boundary candidate is recorded here, but no Accepted Shared Identity contract is established; implementation teams cannot infer exact token, session, header, or deployment values from this ADR.
 
 ## Deferred Decisions
 

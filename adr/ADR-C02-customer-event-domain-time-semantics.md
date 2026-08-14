@@ -99,6 +99,7 @@ This ADR does not define:
 
 - Read-only source verification confirmed the frontend status union and time-bearing types in `src/domain/customerEvent.ts`.
 - Read-only source verification confirmed planned-to-occurred and planned-to-cancelled product transitions and derived overdue behavior in the frontend domain/store sources.
+- Read-only source verification confirmed the Follow-up projection in `docs/design/carelog/README.md:35-36` and the legacy-to-CustomerEvent planned-event mapping in `src/adapters/legacyCustomerEventAdapter.ts:34-51`.
 - Read-only source verification confirmed `RelationJournal` is a separate relation-backed backend entity.
 - Read-only source verification found no production backend CustomerEvent API or persistence implementation at the bootstrap revisions.
 - The source revisions used for this characterization are recorded in [README](../README.md).
@@ -107,7 +108,7 @@ This ADR does not define:
 
 - `carelog-fe/src/domain/customerEvent.ts` at `carelog-fe/main@207fd3f5bb27241b7e858ce7cf888db6675eaaa8`.
 - `carelog-fe/src/state/eventStore.ts` at `carelog-fe/main@207fd3f5bb27241b7e858ce7cf888db6675eaaa8`.
-- `carelog-fe/src/components/customers/CustomerTimeline.tsx` and `src/pages/FollowUpsPage.tsx` at `carelog-fe/main@207fd3f5bb27241b7e858ce7cf888db6675eaaa8`.
+- `carelog-fe/docs/design/carelog/README.md:35-36` and `carelog-fe/src/adapters/legacyCustomerEventAdapter.ts:34-51` at `carelog-fe/main@207fd3f5bb27241b7e858ce7cf888db6675eaaa8`.
 - `carelog-be/src/main/java/carelog/carelog/relation/domain/Relation.java` at `carelog-be/dev@2bae6677498aefe57b583f648519bd9f9c5ebc0a`.
 - `carelog-be/src/main/java/carelog/carelog/journal/domain/RelationJournal.java` at `carelog-be/dev@2bae6677498aefe57b583f648519bd9f9c5ebc0a`.
 - [Customer event lifecycle contract](../contracts/customer-event-lifecycle.md).
