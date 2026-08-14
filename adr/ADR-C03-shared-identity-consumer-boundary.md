@@ -9,7 +9,7 @@
 | Related Repositories | `carelog-architecture`, `carelog-be`, `platform-services`, `harness-foundation-docs` |
 | Depends On | Platform repository/service boundaries and identity ownership evidence; current Carelog Auth/Gateway transition source |
 | Supersedes | None; this is a Carelog consumer-boundary decision and does not accept a shared wire schema |
-| Canonical Merge SHA | PENDING |
+| Canonical Merge SHA | 4c3e48162557577ccc86c21f8c79de421ecbaf25 |
 
 ## Context
 

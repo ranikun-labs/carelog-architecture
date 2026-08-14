@@ -9,7 +9,7 @@
 | Related Repositories | `carelog-architecture`, `carelog-fe`, `carelog-be`, `harness-foundation-docs` |
 | Depends On | Carelog frontend product model at the bootstrap revision; Foundation documentation ownership rules |
 | Supersedes | None; this establishes the Carelog CustomerEvent product semantic without replacing legacy backend assets |
-| Canonical Merge SHA | PENDING |
+| Canonical Merge SHA | 4c3e48162557577ccc86c21f8c79de421ecbaf25 |
 
 ## Context
 
