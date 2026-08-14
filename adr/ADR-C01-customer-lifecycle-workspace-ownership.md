@@ -9,7 +9,7 @@
 | Related Repositories | `carelog-architecture`, `carelog-be`, `carelog-fe`, `platform-services`, `harness-foundation-docs` |
 | Depends On | Platform-wide ownership boundaries from `harness-foundation-docs`; current Carelog Customer behavior in `carelog-be`; current Carelog product scope in `carelog-fe` |
 | Supersedes | None; this is a Carelog-specific decision and does not supersede Foundation records |
-| Canonical Merge SHA | PENDING |
+| Canonical Merge SHA | 4c3e48162557577ccc86c21f8c79de421ecbaf25 |
 
 ## Context
 
