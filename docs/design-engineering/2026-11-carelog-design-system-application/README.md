@@ -42,7 +42,7 @@ ref는 분석 시점의 재현 기준이며 영구 불변 값이 아니다.
 
 > **우선순위**: 01~05 본문은 아래 Owner 결정 **이전에** 작성됐다. 본문의 미결 항목은 아래 결정으로 대체한다. 본문과 이 절이 충돌하면 이 절을 따른다. 대체되는 본문 항목은 다음과 같다.
 > - `01-inventory.md` Q2: "첫 PR은 main"
-> - `02-contract-gap.md` D-1·D-2: Owner 확인 대기·확정 전 제안
+> - `02-contract-gap.md` D-1: Owner 확인 대기 (D-2 다크 on-strong은 Foundation에서도 미확정이므로 **제안 유지**, 대체 대상 아님)
 > - `05-handoff-plan.md` PRE-2·PRE-3과 PR-1~PR-6의 base=main
 > - `05-handoff-plan.md` PRE-5: 제품 어휘 질의
 >
