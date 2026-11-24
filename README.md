@@ -32,6 +32,7 @@ Product architecture owns the Carelog meaning of a consumed identity and product
 | Customer ownership | [ADR-C01](adr/ADR-C01-customer-lifecycle-workspace-ownership.md), [customer ownership contract](contracts/customer-ownership.md) |
 | Customer events | [ADR-C02](adr/ADR-C02-customer-event-domain-time-semantics.md), [customer event lifecycle contract](contracts/customer-event-lifecycle.md) |
 | Identity boundary | [ADR-C03](adr/ADR-C03-shared-identity-consumer-boundary.md), [authenticated Carelog context contract](contracts/authenticated-carelog-context.md) |
+| Visit history evidence view | [visit history evidence view contract](contracts/visit-history-evidence-view.md) (Proposed; RPL-62 HOLD) |
 
 Decision status and implementation status remain separate. In particular, an Accepted product invariant does not prove that the backend API or persistence implementation is complete.
 
