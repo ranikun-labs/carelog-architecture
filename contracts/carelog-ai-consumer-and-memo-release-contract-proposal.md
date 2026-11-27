@@ -1,4 +1,4 @@
-# Carelog — 최소 출시 MVP 실제 Consumer·명시 저장 계약 v0.1
+# Carelog — 최소 출시 MVP 실제 Consumer·명시 저장 계약 v0.2
 
 상태: **PROPOSED / NOT_EFFECTIVE** · CAI-01/03 · 2026-11-27. [RPL-62](https://ranikunlabs.atlassian.net/browse/RPL-62) HOLD, 실제 메모 저장 BLOCKED 유지. PLANNED 첫 준비를 구체화하며 전체 RPL-62 Scope(PLANNED/OCCURRED 및 Customer-level entry, RPL-87) 축소·종결을 승인하지 않는다. 현재 유효 Assistant 세션 임시 결과 방식은 기존 Owner 승인 재사용. 최근 완료 방문 3건+더보기 결정 대기. 운영 Memory OFF.
 
@@ -8,7 +8,7 @@
 |---|---|---|---|
 | 실제 Consumer | Carelog BE가 현재 actor/Workspace/Customer/Event 인가; 내부 서비스 인증된 HTTP 연결 우선 후보 | 정상 인증과 scope의 권위 출처, provider-neutral request/result·오류·deadline·취소 물리 매핑, 승인 Skill, 허용 기록 조회 범위 확정. 기존 local/test endpoint를 prod 활성화하지 않음 | 변조 actor/tenant, 다른 고객, 취소 Event, 만료된 서비스 자격증명은 실행/데이터 노출 0건 |
 | 출처·오래된 결과 | 현재 세션 내 최신 유효 결과만 재열람; 유효한 출처 ID와 실제 주장 의미 함께 확인 | 사용한 각 원본의 버전·현재 권한·선택·작업/실행 상관관계 검증, 무효화 후 이전 결과/저장 CTA 차단 | 일정 변경 요청을 확정으로 표현한 출력 차단; 실행 중 과거 방문 수정/삭제, 고객 이동, 권한 회수→결과 폐기 |
-| 명시 메모 저장 | 기존 메모 보존 + 사용자 확인 문구만 원자적 추가; stale 충돌·같은 저장 요청 재전송 처리 | 서버의 현재 쓰기 인가·대상/원본 유효성 검증, 예상 버전 비교와 멱등 결과를 같은 트랜잭션에서 확정, 명시적 재확인 UX | A가 확인창을 열고 B가 수정→A 저장 충돌·B 메모 유지. 동일 요청 2회→1번 추가. 제출 전 취소→쓰기 0건 |
+| 명시 메모 저장 | 기존 메모 보존 + 사용자 확인 문구만 원자적 추가; stale 충돌·같은 저장 요청 재전송 처리 | 서버의 현재 쓰기 인가·대상/원본 유효성 검증, 예상 버전 비교와 멱등 결과를 같은 트랜잭션에서 확정, 명시적 재확인 UX | AI 추가 확인창과 일반 편집창이 각각 먼저 열리는 양방향 충돌에서 선행 commit 보존(C-R04). 동일 요청 2회→1번 추가. 제출 전 취소→쓰기 0건 |
 
 ## 2. Consumer 현재 계약 차이
 
@@ -28,7 +28,7 @@
 현행 조회 근거: [CustomerEventServiceImpl 고정 스냅샷](https://github.com/ranikun-labs/carelog-be/blob/a68f11892cee6547d6f1b3c9dcf63903569f7191/carelog-be/src/main/java/carelog/carelog/customerevent/app/CustomerEventServiceImpl.java#L107-L129)에서 요청 note로 updateNote, [CustomerEventUpdateRequest](https://github.com/ranikun-labs/carelog-be/blob/a68f11892cee6547d6f1b3c9dcf63903569f7191/carelog-be/src/main/java/carelog/carelog/customerevent/web/dto/CustomerEventUpdateRequest.java)는 note 교체 입력이며 이 조회의 DTO에는 버전/멱등 필드가 확인되지 않았다. 행 잠금만으로 stale 전체 교체 방지 안 됨. 기존 PATCH를 변경하거나 새 API/DB를 여기서 승인하지 않는다.
 
 - 사용자가 현재 유효 브리핑의 'Event 메모에 추가' → 확인창에서 최신 기존 메모 확인, 추가 문구 편집 → 명시 Save. 요청에는 논리적으로 대상/현재 결과 참조/원본 참조·버전 집합/확인 당시 메모 예상 버전/추가 문구/저장 의도 식별자가 결속되어야 한다. Client 전송 값은 신뢰하지 않고 서버가 현재 결과·인가와 매핑 검증. 기존 메모 본문과 Event 상태·시각·identity는 변경하지 않고 승인된 문구만 정해진 연결 방식으로 추가(길이 제한 초과 거절, 자동 잘라내기 금지). 생성 모델은 mutation 권한 없음.
-- 추천: 기존 Event aggregate의 버전 또는 동일 수준의 승인된 단조 증가 revision과 저장 의도에 대한 durable idempotency를 재사용; 없다면 BE Owner가 최소 조건부 append 및 dedup 저장을 별도 승인. 모든 기존 메모 변경 경로가 동일 버전 규칙에 참여해야 한다. 단순 내용 hash/시각 비교만으로 ABA 및 동시성 보장을 선언하지 않는다. 저장 시점의 권위 있는 읽기와 조건부 반영을 동일 트랜잭션에서 보장(필요한 인가/참조 원본 동시성 경계 포함); 이를 보장할 수 없으면 실제 저장 BLOCKED.
+- 추천: 기존 Event aggregate의 버전 또는 동일 수준의 승인된 단조 증가 revision과 저장 의도에 대한 durable idempotency를 재사용; 없다면 BE Owner가 최소 조건부 append 및 dedup 저장을 별도 승인. 모든 메모 변경 경로가 같은 권위 있는 단조 증가 revision과 조건부 갱신 불변식에 참여해야 한다. AI 추가뿐 아니라 일반 메모 편집의 전체 note 교체, 기존 PATCH·호환 경로 및 기타 note를 변경하는 writer도 확인/편집 시점의 예상 revision을 현재 revision과 원자적으로 비교한 후에만 반영한다. revision 증가만 하고 예상 revision 비교를 생략하는 경로, 누락 revision에 대해 무조건 덮어쓰는 legacy 경로, 서버가 최신 revision을 대신 채워 오래된 client 본문을 수락하는 경로는 허용하지 않는다. 기존 편집창이 v1을 열고 AI 추가가 v2를 commit한 뒤 일반 전체 교체 v1을 보내면 쓰기 0건·v2 본문 보존·충돌 안내를 반환한다. 반대로 일반 편집 v2가 먼저 commit되면 오래된 AI 추가 v1도 거부한다. 충돌 시 최신 메모를 표시하고 사용자 재확인으로만 새 의도/예상 revision으로 저장하며 자동 병합·자동 덮어쓰기하지 않는다. 기존 PATCH 보완 또는 동등하게 데이터 유실을 막는 기존 aggregate/mutation 방식으로 해결하며 신규 API/저장 도메인을 강제하지 않는다. 기존 편집 client의 호환 전환과 모든 write 경로 검증이 선행되지 않으면 실제 AI 메모 저장 연동은 BLOCKED 유지. 단순 내용 hash/시각 비교만으로 ABA 및 동시성 보장을 선언하지 않는다. 저장 시점의 권위 있는 읽기와 조건부 반영을 동일 트랜잭션에서 보장(필요한 인가/참조 원본 동시성 경계 포함); 이를 보장할 수 없으면 실제 저장 BLOCKED.
 - 서버는 현재 authenticated actor/tenant/customer/event의 쓰기 권한 확인 후 동일 저장 의도 키의 완료 기록과 정규화된 요청(대상, 결과 결속, 예상 버전, 문구 등)을 비교한다. 이미 성공한 동일 요청은 추가 쓰기 없이 현재 권한으로 확인 가능한 성공 receipt만 반환(현재 원본/권한 무효 시 민감 응답 노출 없이 안전 처리); 변경된 payload/대상은 충돌. 최초 실행만 원본 및 유효 결과·메모 예상 버전 비교 후 현재 note에 append, revision 갱신, 중복 방지 결과 기록을 하나의 commit으로 확정. 동시 동일 키는 한 commit만 허용; 타인의 새 메모 변경과 경쟁 시 stale conflict로 쓰기 0건. 충돌은 최신 메모와 결과의 유효성을 다시 확인하고 새 명시 확인/저장 의도로만 진행. 같은 키의 결과 조회가 메모 변경 이후에도 추가 저장을 발생시키지 않도록 순서 보장. dedup 보존기간은 지원 재전송 가능 기간 이상이며 만료된 키를 새 저장으로 오인하지 않는 계약 필요; 실제 store/키/TTL/물리 endpoint는 미승인.
 - 제출 전 취소 쓰기 0. 제출 후 네트워크 취소/응답 유실은 실패로 가정하지 않으며 현재 권한에서 기존 저장 의도 receipt 확인 또는 안전한 동일 요청 재전송. 완료된 저장의 자동 취소/롤백 없음. 일반 CRM 메모 편집/일정 업무는 AI 실패와 독립. 저장 Gate 불충족 시 CTA를 비활성/안내 처리하고 실제 저장 성공으로 표시하지 않음.
 
@@ -37,7 +37,7 @@
 - C-R01: 신뢰된 서비스 인증/만료/위조/잘못된 audience 및 Workspace/Customer/Event 혼선 → 권한 없는 모델/Tool 호출 0. production fake/local profile 우회 없음.
 - C-R02: 허용 완료 방문 + 비인가/다른 고객/취소/삭제 기록 섞기 → 허용 데이터만 payload/출처. 일정 변경 요청을 확정으로 주장한 valid-ID output 숨김. 빈 결과와 장애 구분.
 - C-R03: 브리핑 중 원본 수정·삭제/권한 변경/선택 전환/취소·timeout → 이전 결과·저장 CTA 무효, 늦은 결과 폐기. 재열람도 현재 원본/권한 확인. 저장 직전 source 변경 → 쓰기 0.
-- C-R04: 기존 메모 M, A 확인 revision v1, B 기존 PATCH로 수정하여 v2, A 저장 → 충돌 및 B 기록 보존. 현재 버전 재확인·새 의도 제출 후 한 번 추가. A/B 동시 저장·동시 기존 edit 경로 포함.
+- C-R04 (MAJOR-C01): 동일 메모 M/v1에서 두 commit 순서를 각각 독립 검증한다. (a) A의 AI 확인창 v1 → B의 일반 편집 PATCH v1 성공(v2, B 기록 포함) → A의 AI 추가 v1 실패·쓰기 0건, B 기록 그대로 보존. (b) B의 일반 편집창 v1 → A의 AI 추가 v1 성공(v2, AI 추가 내용 포함) → B의 늦은 일반 전체 note 교체 v1 실패·쓰기 0건, AI 추가 포함 v2 본문 그대로 보존. 예상 revision 누락/변조, legacy·대체 note writer를 통한 stale 전체 교체도 거부하며 단순 revision 증가만으로 PASS 불가. 두 경우 모두 최신 메모 재조회·사용자 재확인·새 의도/예상 revision 제출 후에만 저장. 실제 동시에 경쟁할 때 한 요청만 해당 revision에서 commit 가능, 나머지는 충돌; 선행 commit과 멱등 결과 보존. 기존 일반 CRM 정상 편집과 RPL-87 UX 회귀 확인.
 - C-R05: 동일 요청 동시/재전송, 응답 유실, 서로 다른 payload/대상 동일 키 → commit 1회 또는 충돌, 추가 0. 실패 transaction rollback 시 메모/dedup 결과 둘 다 불변. 제출 전 취소 쓰기 0. 취소 후 이미 commit 됐다면 성공 확인으로만 처리.
 - C-R06: RPL-87 기존 세 진입점과 비AI CRM 회귀, 실제 PLANNED preparation→결과→확인→메모 저장 E2E; 다른 진입점의 물리 계약/검증을 전체 RPL-62 re-entry에 포함. Provider/model은 FE에 미노출. Fake만으로 출시 PASS 금지.
 
