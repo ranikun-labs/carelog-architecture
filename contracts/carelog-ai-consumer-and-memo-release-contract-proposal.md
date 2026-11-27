@@ -1,0 +1,44 @@
+# Carelog — 최소 출시 MVP 실제 Consumer·명시 저장 계약 v0.1
+
+상태: **PROPOSED / NOT_EFFECTIVE** · CAI-01/03 · 2026-11-27. [RPL-62](https://ranikunlabs.atlassian.net/browse/RPL-62) HOLD, 실제 메모 저장 BLOCKED 유지. PLANNED 첫 준비를 구체화하며 전체 RPL-62 Scope(PLANNED/OCCURRED 및 Customer-level entry, RPL-87) 축소·종결을 승인하지 않는다. 현재 유효 Assistant 세션 임시 결과 방식은 기존 Owner 승인 재사용. 최근 완료 방문 3건+더보기 결정 대기. 운영 Memory OFF.
+
+## 1. 출시 필수 여부 → Owner 결정 → 구현 인수 조건 → 합성 테스트
+
+| 출시 필수 | Owner 결정 후보 | 구현 인수 조건 | 합성 테스트 예시 |
+|---|---|---|---|
+| 실제 Consumer | Carelog BE가 현재 actor/Workspace/Customer/Event 인가; 내부 서비스 인증된 HTTP 연결 우선 후보 | 정상 인증과 scope의 권위 출처, provider-neutral request/result·오류·deadline·취소 물리 매핑, 승인 Skill, 허용 기록 조회 범위 확정. 기존 local/test endpoint를 prod 활성화하지 않음 | 변조 actor/tenant, 다른 고객, 취소 Event, 만료된 서비스 자격증명은 실행/데이터 노출 0건 |
+| 출처·오래된 결과 | 현재 세션 내 최신 유효 결과만 재열람; 유효한 출처 ID와 실제 주장 의미 함께 확인 | 사용한 각 원본의 버전·현재 권한·선택·작업/실행 상관관계 검증, 무효화 후 이전 결과/저장 CTA 차단 | 일정 변경 요청을 확정으로 표현한 출력 차단; 실행 중 과거 방문 수정/삭제, 고객 이동, 권한 회수→결과 폐기 |
+| 명시 메모 저장 | 기존 메모 보존 + 사용자 확인 문구만 원자적 추가; stale 충돌·같은 저장 요청 재전송 처리 | 서버의 현재 쓰기 인가·대상/원본 유효성 검증, 예상 버전 비교와 멱등 결과를 같은 트랜잭션에서 확정, 명시적 재확인 UX | A가 확인창을 열고 B가 수정→A 저장 충돌·B 메모 유지. 동일 요청 2회→1번 추가. 제출 전 취소→쓰기 0건 |
+
+## 2. Consumer 현재 계약 차이
+
+- [병합된 v0.2 설계와 승인 기록](https://github.com/ranikun-labs/carelog-architecture/pull/5) 및 [고정 문서](https://github.com/ranikun-labs/carelog-architecture/blob/839ad3ded1d6b909edc61dbf99a9618e0cea18a2/contracts/carelog-ai-preparation-consumer-contract-proposal.md), [RPL-87 Mock UX](https://ranikunlabs.atlassian.net/browse/RPL-87), [RPL-62](https://ranikunlabs.atlassian.net/browse/RPL-62) 재사용. 기존 출처 의미·의료 안전·자동 저장 금지·결과 수명 AC(C-01~07)를 유지한다.
+- [Platform local/test 실행 Controller](https://github.com/ranikun-labs/platform-services/blob/e6b7ad43511315194c3c6fb7dd016f31b3345917/platform-core/app/src/main/java/com/ranikunlabs/platform/core/sharedai/LocalTestSharedAiExecutionController.java#L37-L56)는 local/test 프로파일 전용. [Finance 기존 HTTP 소비 계약](https://github.com/ranikun-labs/finance-harness-be/blob/06cbfc83c6bae707313999f68751d37e72f58d62/docs/finance-general-analysis-shared-ai-consumer-decision-draft.md)은 loopback 전용, 서비스 인증 없음; 반복 호출은 다시 실행되고 취소/영속 멱등 보장 없음. 이 계약의 구조를 재사용할 수 있으나 운영 endpoint/auth가 구현됐다고 간주하지 않는다. 해당 고정 조회 스냅샷 이외의 모든 런타임 경로를 확인한 것은 아님.
+- 추천 전송: 기존 내부 HTTP/JSON Port/Adapter 방식으로 시작하고 BE/Platform/Security Owner가 실제 서비스 인증(TLS 및 검증된 service credential/권한, 신뢰 anchor·수명·회전·네트워크·audience, replay/authority 계약 포함)을 승인한다. 사내망/Cloud Map 주소만으로 인증 대체 금지. 기존 운영 서비스 인증 정본이 있다면 그 방식 우선, 없다면 별도 계약 전에는 호출 실패. FE가 Shared AI 주소/credential/provider/model을 받거나 직접 호출하지 않음. 로컬/test controller를 운영에 우회 노출하지 않는다. 새 공통 AI 엔진·broker·스키마 불필요. 실제 내부 URL/SkillId/DTO 이름은 Source Owner 확정 전 미정.
+
+## 3. 요청/응답·조회 범위 (논리 계약)
+
+1. FE → Carelog 인증 경계에서 `PREPARATION`(논리 작업명), 선택 Customer/Event 참조, 요청 상관관계, 현재 Assistant view를 서버가 검증. 서버가 verified identity→local Workspace membership→Customer 접근→Event 관계/PLANNED 상태를 도출한다. 클라이언트·모델의 principal/authority/tenant 주장은 무시. 고객/이벤트 ID 존재만으로 권한 부여 금지. 기존 Customer 및 OCCURRED 질문은 동일 Surface의 별도 논리 operation으로 유지(현재 인가된 선택 Customer 또는 OCCURRED Event, 허용된 최소 기록, 중립 업무 확인 답변). 각 operation의 실제 scope/AC/저장 대상(Customer/Event) 및 wire는 후속 Owner 승인; PLANNED만으로 전체 HOLD 해제 금지.
+2. 조회: 선택 예정 Event의 계획 시각·목적·승인된 메모와 허용된 동일 고객 OCCURRED 기록만. 최근 3건+더보기는 **결정 대기**. 실제 상한/기간·정렬/tie-break·field allowlist·민감도·메모 길이·고지와 외부 전송 여부 승인 전 실기록 조회/모델 전송하지 않음. 합성은 지정 fixture만. 부적격 기록 제거는 Tool/model 호출 전이며 결과 Evidence에서도 제외. 빈 기록과 조회 실패 분리, 일정 변경 요청과 확정 구별. 필요 없는 identity/연락처·민감 의료 원문 제외. 허용 원본마다 Product scope, 원본 참조, 읽은 필드, 권위 있는 버전/시각 및 조회 시점을 고정한다. 원본마다 안정적인 변경 검증 수단이 없으면 재열람/저장 활성화 금지(필드가 있다고 버전 계약을 추론하지 않음).
+3. Carelog → Shared AI는 현재 인가된 Product/tenant/resource/principal/request 및 correlation/authority seed와 승인된 capability/업무 입력만 전달. Shared AI가 실행 ID/context version을 발급하고 scope 무결성·비확대·Evidence·Usage를 검사. 제품 DB 직접 접근 금지. Carelog 결과는 요청/실행/Customer/Event/원본 scope 결속, 방문 목적·이전 맥락·확인 항목·중립 질문·출처/한계를 한국어로 검증하여 기존 Assistant에 제공. 유효한 참조라도 원본보다 강한 주장·의료 진단/처방·개별 치료 판단 금지. 오류 시 불완전 본문 미노출. 논리 성공/인가 실패/충돌·stale/timeout/기술 실패의 구분은 기존 API convention에 매핑할 후보이며 HTTP status/DTO를 확정하지 않음.
+4. 초기에는 buffered 응답, 유한 전체 deadline, 자동 재시도 없음, 선택된 Assistant의 활성 요청 1건. BE/Platform Owner가 connect/request/model timeout과 크기/사용량 상한 수치를 기존 운영 계약에 맞춰 승인. 사용자 취소·선택 변경 시 결과/CTA 폐기, provider 작업이 실제 중단됐다고 단정하지 않음; 늦은 응답은 요청 ID 및 현재 세션/선택 검증으로 차단. 매 표시·재열람·저장 요청 시 최신 인가·원본 버전·대상 상태 검사. 변경/삭제/취소/권한 철회/현재 세션 종료 또는 재확인 불능 시 무효화 및 새 요청 안내. UI의 준비됨은 파생 표시이며 새 PREPARED enum/AI History 저장 없음. 서버가 현재 유효 결과와 원본 결속을 검증할 수 있도록 기존 request/session boundary 재사용; FE-only 결과 표시를 저장 권한의 증거로 취급하지 않음. 임시 결과의 서버-side 검증 방식·expiry 확정 전 실제 저장 금지.
+
+## 4. 명시 저장의 최소 기술 계약 (BE Owner 승인 후보)
+
+현행 조회 근거: [CustomerEventServiceImpl 고정 스냅샷](https://github.com/ranikun-labs/carelog-be/blob/a68f11892cee6547d6f1b3c9dcf63903569f7191/carelog-be/src/main/java/carelog/carelog/customerevent/app/CustomerEventServiceImpl.java#L107-L129)에서 요청 note로 updateNote, [CustomerEventUpdateRequest](https://github.com/ranikun-labs/carelog-be/blob/a68f11892cee6547d6f1b3c9dcf63903569f7191/carelog-be/src/main/java/carelog/carelog/customerevent/web/dto/CustomerEventUpdateRequest.java)는 note 교체 입력이며 이 조회의 DTO에는 버전/멱등 필드가 확인되지 않았다. 행 잠금만으로 stale 전체 교체 방지 안 됨. 기존 PATCH를 변경하거나 새 API/DB를 여기서 승인하지 않는다.
+
+- 사용자가 현재 유효 브리핑의 'Event 메모에 추가' → 확인창에서 최신 기존 메모 확인, 추가 문구 편집 → 명시 Save. 요청에는 논리적으로 대상/현재 결과 참조/원본 참조·버전 집합/확인 당시 메모 예상 버전/추가 문구/저장 의도 식별자가 결속되어야 한다. Client 전송 값은 신뢰하지 않고 서버가 현재 결과·인가와 매핑 검증. 기존 메모 본문과 Event 상태·시각·identity는 변경하지 않고 승인된 문구만 정해진 연결 방식으로 추가(길이 제한 초과 거절, 자동 잘라내기 금지). 생성 모델은 mutation 권한 없음.
+- 추천: 기존 Event aggregate의 버전 또는 동일 수준의 승인된 단조 증가 revision과 저장 의도에 대한 durable idempotency를 재사용; 없다면 BE Owner가 최소 조건부 append 및 dedup 저장을 별도 승인. 모든 기존 메모 변경 경로가 동일 버전 규칙에 참여해야 한다. 단순 내용 hash/시각 비교만으로 ABA 및 동시성 보장을 선언하지 않는다. 저장 시점의 권위 있는 읽기와 조건부 반영을 동일 트랜잭션에서 보장(필요한 인가/참조 원본 동시성 경계 포함); 이를 보장할 수 없으면 실제 저장 BLOCKED.
+- 서버는 현재 authenticated actor/tenant/customer/event의 쓰기 권한 확인 후 동일 저장 의도 키의 완료 기록과 정규화된 요청(대상, 결과 결속, 예상 버전, 문구 등)을 비교한다. 이미 성공한 동일 요청은 추가 쓰기 없이 현재 권한으로 확인 가능한 성공 receipt만 반환(현재 원본/권한 무효 시 민감 응답 노출 없이 안전 처리); 변경된 payload/대상은 충돌. 최초 실행만 원본 및 유효 결과·메모 예상 버전 비교 후 현재 note에 append, revision 갱신, 중복 방지 결과 기록을 하나의 commit으로 확정. 동시 동일 키는 한 commit만 허용; 타인의 새 메모 변경과 경쟁 시 stale conflict로 쓰기 0건. 충돌은 최신 메모와 결과의 유효성을 다시 확인하고 새 명시 확인/저장 의도로만 진행. 같은 키의 결과 조회가 메모 변경 이후에도 추가 저장을 발생시키지 않도록 순서 보장. dedup 보존기간은 지원 재전송 가능 기간 이상이며 만료된 키를 새 저장으로 오인하지 않는 계약 필요; 실제 store/키/TTL/물리 endpoint는 미승인.
+- 제출 전 취소 쓰기 0. 제출 후 네트워크 취소/응답 유실은 실패로 가정하지 않으며 현재 권한에서 기존 저장 의도 receipt 확인 또는 안전한 동일 요청 재전송. 완료된 저장의 자동 취소/롤백 없음. 일반 CRM 메모 편집/일정 업무는 AI 실패와 독립. 저장 Gate 불충족 시 CTA를 비활성/안내 처리하고 실제 저장 성공으로 표시하지 않음.
+
+## 5. 추가 합성 검증 및 실제 인수 조건
+
+- C-R01: 신뢰된 서비스 인증/만료/위조/잘못된 audience 및 Workspace/Customer/Event 혼선 → 권한 없는 모델/Tool 호출 0. production fake/local profile 우회 없음.
+- C-R02: 허용 완료 방문 + 비인가/다른 고객/취소/삭제 기록 섞기 → 허용 데이터만 payload/출처. 일정 변경 요청을 확정으로 주장한 valid-ID output 숨김. 빈 결과와 장애 구분.
+- C-R03: 브리핑 중 원본 수정·삭제/권한 변경/선택 전환/취소·timeout → 이전 결과·저장 CTA 무효, 늦은 결과 폐기. 재열람도 현재 원본/권한 확인. 저장 직전 source 변경 → 쓰기 0.
+- C-R04: 기존 메모 M, A 확인 revision v1, B 기존 PATCH로 수정하여 v2, A 저장 → 충돌 및 B 기록 보존. 현재 버전 재확인·새 의도 제출 후 한 번 추가. A/B 동시 저장·동시 기존 edit 경로 포함.
+- C-R05: 동일 요청 동시/재전송, 응답 유실, 서로 다른 payload/대상 동일 키 → commit 1회 또는 충돌, 추가 0. 실패 transaction rollback 시 메모/dedup 결과 둘 다 불변. 제출 전 취소 쓰기 0. 취소 후 이미 commit 됐다면 성공 확인으로만 처리.
+- C-R06: RPL-87 기존 세 진입점과 비AI CRM 회귀, 실제 PLANNED preparation→결과→확인→메모 저장 E2E; 다른 진입점의 물리 계약/검증을 전체 RPL-62 re-entry에 포함. Provider/model은 FE에 미노출. Fake만으로 출시 PASS 금지.
+
+제품 Owner(조회 범위, 첫 출시 scope), BE/Platform/Security Owner(실제 auth/wire/timeout/버전·멱등), Privacy Owner(민감 데이터·외부 Provider/retention/logging) 승인 전 HOLD/저장 BLOCKED 유지. RPL-62 기존 전체 범위를 조정하려면 별도 Owner 승인. Native/CI/독립 검수/실 E2E NOT_RUN. 코드·Jira·배포 변경 없음.
